@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz - Wesele: Bohaterowie</title>
+    <link rel="stylesheet" href="style_quizPage.css" />
+    <link rel="stylesheet" href="style_quizy.css" />
+    <link rel="stylesheet" href="style_main.css" />
+</head>
+<body>
+    <header>
+            <div id="left-div">
+                <strong>
+                <a class="header-a" href="main.html">Główna</a>
+                </strong>
+                <a class="header-a" href="">Nauka</a>
+                <a class="header-a" href="quizy.html">Quizy</a>
+                <a class="header-a" href="">Homework</a>
+                <a class="header-a" href="">Egzaminy</a>
+                <a class="header-a" href="#narzedzia">Narzędzia</a>
+            </div>
+            <div id="right-div">
+                <span id="date-time">Pon 25 Maj 19:52</span>
+            </div>
+        </header>
+    <div class="quiz-wrapper">
+        <div class="quiz-box">
+            <div id="quizView" style="display:flex;flex-direction:column;flex:1">
+                <div class="quiz-title" id="quizTitle"></div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+                </div>
+                <div class="question-number" id="questionNumber"></div>
+                <div class="question-text" id="questionText"></div>
+                <div class="answers" id="answersContainer"></div>
+                <div class="quiz-bottom">
+                    <button class="btn-end" id="btnEnd">Zakoncz</button>
+                    <div class="score-display" id="scoreDisplay">0% poprawnych</div>
+                </div>
+            </div>
+            <div id="resultsView" style="display:none" class="results">
+                <div class="result-pct" id="resultPct">0%</div>
+                <div class="result-sub">poprawnych odpowiedzi</div>
+                <div class="result-stats">
+                    <div class="stat">
+                        <span class="stat-val" style="color:rgba(100,220,130,0.9)" id="rCorrect">0</span>
+                        <span class="stat-lbl">poprawne</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-val" style="color:rgba(230,100,100,0.9)" id="rWrong">0</span>
+                        <span class="stat-lbl">niepoprawne</span>
+                    </div>
+                    <div class="stat" id="skipStat">
+                        <span class="stat-val" style="color:rgba(255,255,255,0.3)" id="rSkip">0</span>
+                        <span class="stat-lbl">niezaznaczone</span>
+                    </div>
+                </div>
+                <div class="result-btns">
+                    <a href="index.html" class="btn-result">Wróc do glównej</a>
+                    <button class="btn-result" onclick="location.reload()">Powtórz quiz</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+
+/* =============================================
+   TUTAJ ZMIENIAJ QUIZ
+   title  - nazwa wyswietlana u gory
+   back   - link przycisku "Wróc do glównej"
+   q      - pytanie
+   a      - tablica 4 odpowiedzi
+   c      - indeks poprawnej odpowiedzi (0,1,2 lub 3)
+   ============================================= */
+
+var QUIZ = {
+    title: "Wesele \u2013 Bohaterowie",
+    back: "index.html",
+    questions: [
+        { q: "Kto jest autorem dramatu Wesele?", a: ["Stanislaw Wyspianski","Boleslaw Prus","Stefan Zeromski","Adam Mickiewicz"], c: 0 },
+        { q: "Pan Mlody wzorowany byl na prawdziwym poscie. Kim byl w rzeczywistosci?", a: ["Kazimierzem Przerwa-Tetmajerem","Lucjanem Rydlem","Janem Kasprowiczem","Stanislawem Przybyszewskim"], c: 1 },
+        { q: "W czyim domu odbywa sie tytulowe wesele?", a: ["W domu Pana Mlodego","W bronowickiej chacie Tetmajerow","W chacie Czepca","W dworze Radczyni"], c: 1 },
+        { q: "Gospodarz Wlodzimierz Tetmajer byl z zawodu:", a: ["Rolnikiem","Malarzem i poeta","Adwokatem","Nauczycielem"], c: 1 },
+        { q: "Gospodyni zona Gospodarza jest siostra:", a: ["Racheli","Panny Mlodej","Maryny","Zosi"], c: 1 },
+        { q: "Czepiec wyróznia sie przede wszystkim:", a: ["Biernoscia i melancholia","Zajeciem politycznym i checia walki","Poboznoscia i pokora","Zamilowaniem do poezji"], c: 1 },
+        { q: "Stanczyk jako duch historyczny symbolizuje:", a: ["Narodowy zryw i walke","Blazenade ironie i madrosc polityczna","Chlopski bunt","Romantyczna milosc"], c: 1 },
+        { q: "Stanczyk ukazuje sie jako wyrzut sumienia:", a: ["Gospodarzowi","Poecie","Dziennikarzowi","Radczyni"], c: 2 },
+        { q: "Dziennikarz wzorowany byl na prawdziwej osobie. Kim byl?", a: ["Rudolfem Starzewskim","Adamem Chmielowskim","Tadeuszem Boyem-Zelenskim","Józefem Kotarbinskim"], c: 0 },
+        { q: "Rycerz Zawisza Czarny ukazuje sie:", a: ["Gospodarzowi","Poecie","Panu Mlodemu","Radczyni"], c: 1 },
+        { q: "Hetman duch symbolizuje:", a: ["Bohatera narodowego","Zdrajce i targowiczanina","Rycerza bez skazy","Króla Polski"], c: 1 },
+        { q: "Jakub Szela - czym zaslynal?", a: ["Zwycieska bitwa pod Racławicami","Przywódca rabacji galicyjskiej 1846","Zalozicielem stronnictwa chlopskiego","Poeta ludowym"], c: 1 },
+        { q: "Upiór Szeli ukazuje sie:", a: ["Dziennikarzowi","Panu Mlodemu","Ojcu Maciejowi Tetmajerowi","Czepce"], c: 2 },
+        { q: "Rachela zaprasza na wesele:", a: ["Chochola i duchy","Rycerzy z obrazów","Sasiadów ze wsi","Chlopów z okolicy"], c: 0 },
+        { q: "Chochol symbolizuje:", a: ["Odrodzenie narodowe i nadzieje","Uspienie marazm i niemoc narodu","Milosc romantyczna","Sile chlopska"], c: 1 },
+        { q: "Zloty Róg powierzony Jaszkowi symbolizuje:", a: ["Bogactwo materialne","Sygnal do narodowego powstania","Muzyke weselna","Tradycje szlachecka"], c: 1 },
+        { q: "Jaszko zgubil Zloty Róg bo:", a: ["Zasnal ze zmeczenia","Schylil sie po czapke z pawim piorem","Ukradl go Czepiec","Wyrzucil do studni"], c: 1 },
+        { q: "Wernyhora przynosi Gospodarzowi:", a: ["Zloty miecz","Zloty Róg jako znak do powstania","Ksiege przepowiedni","Choragiew narodowa"], c: 1 },
+        { q: "Poeta w dramacie reprezentuje postawe:", a: ["Walecznego patrioty","Dekadenta i estety uciekajacego od rzeczywistosci","Przywódcy chlopów","Pozytywistycznego spolecznika"], c: 1 },
+        { q: "Poeta wzorowany byl na:", a: ["Lucjanie Rydlu","Kazimierzu Przerwa-Tetmajerze","Janie Kasprowiczu","Stanislawiu Wyspianskim"], c: 1 },
+        { q: "Radczyni reprezentuje postawe:", a: ["Entuzjazmu wobec malzenstw miedzy stanami","Konserwatywnej inteligencji gardzacej chlopstwem","Chlopskiej madrosci","Rewolucyjnego radykalizmu"], c: 1 },
+        { q: "Chocholi taniec w finale symbolizuje:", a: ["Radosc i swietowanie","Zbiorowe uspienie i niemoc","Przygotowanie do bitwy","Hold dla tradycji ludowej"], c: 1 },
+        { q: "Wesele zostalo po raz pierwszy wystawione w:", a: ["Warszawie 1901","Krakowie 1901","Lwowie 1900","Poznaniu 1902"], c: 1 },
+        { q: "Prawdziwe wesele odbylao sie w roku:", a: ["1895","1898","1900","1903"], c: 2 },
+        { q: "Klimina charakteryzuje sie:", a: ["Madroscia i spokojem","Gadatliwoscia i przyziemnoscia","Walecznoscia i patriotyzmem","Poetyckim natchnieniem"], c: 1 },
+        { q: "Slynne Miales chamie zloty róg wypowiada:", a: ["Gospodarz","Chochol","Dziennikarz","Poeta"], c: 1 },
+        { q: "Dramat dzieli sie na:", a: ["Dwa akty","Trzy akty","Cztery akty","Piec aktów"], c: 1 },
+        { q: "Motyw chlopomanii symbolizuje:", a: ["Rewolucje przemyslowa","Idealizowanie wsi przez inteligencje przy realnej przepasci miedzy stanami","Sojusz inteligencji z chlopstwem","Powrót do tradycji szlacheckiej"], c: 1 },
+        { q: "Hetman ukazuje sie jako wyrzut sumienia:", a: ["Gospodarzowi","Panu Mlodemu","Dziennikarzowi","Czepce"], c: 1 },
+        { q: "Maryna flirtuje na weselu z:", a: ["Gospodarzem","Poeta Kazimierzem Tetmajerem","Dziennikarzem","Panem Mlodym"], c: 1 },
+    ]
+};
+
+/* =============================================
+   LOGIKA - nie zmieniaj ponizej
+   ============================================= */
+
+var current = 0, correct = 0, wrong = 0, answered = 0, locked = false;
+var LABELS = ["A","B","C","D"];
+var questions = shuffle(QUIZ.questions.slice());
+
+document.getElementById("quizTitle").textContent = QUIZ.title;
+document.querySelector(".btn-result").href = QUIZ.back;
+
+function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+}
+
+function updateScore() {
+    var pct = answered === 0 ? 0 : Math.round((correct / answered) * 100);
+    document.getElementById("scoreDisplay").textContent = pct + "% poprawnych";
+}
+
+function renderQuestion() {
+    locked = false;
+    var q = questions[current];
+    var total = questions.length;
+    document.getElementById("questionNumber").textContent = (current + 1) + " / " + total;
+    document.getElementById("questionText").textContent = q.q;
+    document.getElementById("progressFill").style.width = (current / total * 100) + "%";
+    var container = document.getElementById("answersContainer");
+    container.innerHTML = "";
+    var order = shuffle([0,1,2,3]);
+    var correctDisplay = 0;
+    for (var i = 0; i < 4; i++) { if (order[i] === q.c) { correctDisplay = i; break; } }
+    for (var pos = 0; pos < 4; pos++) {
+        var btn = document.createElement("button");
+        btn.className = "answer-btn";
+        btn.dataset.pos = pos;
+        btn.dataset.correct = correctDisplay;
+        var lbl = document.createElement("span");
+        lbl.className = "answer-label";
+        lbl.textContent = LABELS[pos];
+        var txt = document.createElement("span");
+        txt.className = "answer-text";
+        txt.textContent = q.a[order[pos]];
+        btn.appendChild(lbl);
+        btn.appendChild(txt);
+        btn.addEventListener("click", handleAnswer);
+        container.appendChild(btn);
+    }
+    updateScore();
+}
+
+function handleAnswer(e) {
+    if (locked) return;
+    locked = true;
+    answered++;
+    var btn = e.currentTarget;
+    var chosen = parseInt(btn.dataset.pos);
+    var correctPos = parseInt(btn.dataset.correct);
+    var btns = document.getElementById("answersContainer").querySelectorAll(".answer-btn");
+    if (chosen === correctPos) { correct++; btns[chosen].classList.add("correct"); }
+    else { wrong++; btns[chosen].classList.add("wrong"); btns[correctPos].classList.add("correct"); }
+    for (var i = 0; i < btns.length; i++) { btns[i].disabled = true; }
+    updateScore();
+    setTimeout(function() {
+        current++;
+        if (current >= questions.length) { showResults(false); } else { renderQuestion(); }
+    }, 1500);
+}
+
+function showResults(early) {
+    document.getElementById("progressFill").style.width = "100%";
+    document.getElementById("quizView").style.display = "none";
+    document.getElementById("resultsView").style.display = "flex";
+    var total = questions.length;
+    var skipped = early ? total - answered : 0;
+    var base = early ? total : answered;
+    var pct = base === 0 ? 0 : Math.round((correct / base) * 100);
+    document.getElementById("resultPct").textContent = pct + "%";
+    document.getElementById("rCorrect").textContent = correct;
+    document.getElementById("rWrong").textContent = wrong;
+    document.getElementById("rSkip").textContent = skipped;
+    if (!early) { document.getElementById("skipStat").style.display = "none"; }
+}
+
+document.getElementById("btnEnd").addEventListener("click", function() { showResults(true); });
+renderQuestion();
+</script>
+</body>
+</html>

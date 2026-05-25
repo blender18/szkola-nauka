@@ -1,0 +1,101 @@
+main {
+    padding: 32px;
+}
+
+#desktop-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-content: start;
+}
+
+.desktop-icon {
+    width: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    user-select: none;
+    padding: 6px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.desktop-icon:focus {
+    outline: none;
+}
+
+.desktop-icon:focus .icon-img,
+.desktop-icon:active .icon-img {
+    filter: brightness(0.95) saturate(0.8);
+}
+
+.desktop-icon:focus span,
+.desktop-icon:active span {
+    background: #cfc03d;
+    color: white;
+    text-shadow: none;
+    border-radius: 3px;
+    padding: 1px 4px;
+}
+
+.icon-img {
+    width: 64px;
+    height: 64px;
+    pointer-events: none;
+    display: block;
+}
+
+.desktop-icon span {
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    color: white;
+    text-align: center;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    max-width: 78px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+@media (max-width: 600px) {
+    header {
+        height: auto;
+        padding: 8px 12px;
+        flex-wrap: wrap;
+    }
+
+    #left-div {
+        flex-wrap: wrap;
+        gap: 4px;
+        width: 100%;
+    }
+
+    #right-div {
+        width: 100%;
+        justify-content: flex-start;
+        padding-top: 4px;
+    }
+
+    .header-a {
+        font-size: 12px;
+        padding: 3px 7px;
+    }
+
+    #desktop-grid {
+        gap: 12px;
+        justify-content: flex-start;
+    }
+
+    .desktop-icon {
+        width: 72px;
+    }
+
+    .icon-img {
+        width: 56px;
+        height: 56px;
+    }
+}
