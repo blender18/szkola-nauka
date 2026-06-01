@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wesele - Ultimate Quiz</title>
+    <style>
+        :root {
+            --font-main: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --glass-bg: rgba(255, 255, 255, 0.22);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --flat-btn-bg: rgba(255, 255, 255, 0.65);
+            --flat-btn-hover: rgba(255, 255, 255, 0.9);
+            --text-dark: #2c2c2e;
+            
+            /* Kolory odpowiedzi */
+            --color-correct: #2ea84e;
+            --color-wrong: #e03b3b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-dark);
+            padding: 20px;
+        }
+
+        /* Glassmorphism Panel - Główne okno */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+            padding: 35px;
+            width: 100%;
+            max-width: 850px;
+            position: relative;
+        }
+
+        /* Pop Animation */
+        .pop-anim {
+            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.92); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Widoki */
+        #quiz-view, #result-view {
+            display: none;
+        }
+
+        #quiz-view.active, #result-view.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Konstrukcja bloku o proporcjach zbliżonych do poziomego 6:4 */
+        .quiz-box {
+            min-height: 520px;
+            justify-content: space-between;
+        }
+
+        /* Góra quizu */
+        .top-bar {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: rgba(0, 0, 0, 0.55);
+        }
+
+        .progress-bar-container {
+            width: 100%; /* Pasek na całą szerokość bloku */
+            height: 7px;
+            background: rgba(255, 255, 255, 0.35);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: #2c2c2e;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Treść pytania */
+        .question-text {
+            font-size: 1.35rem;
+            font-weight: 700;
+            line-height: 1.4;
+            margin-bottom: 25px;
+            text-align: center;
+            color: rgba(0, 0, 0, 0.85);
+        }
+
+        /* Siatka odpowiedzi */
+        .answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 650px) {
+            .answers-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Przyciski odpowiedzi (płaskie, bez nakładania liquid glass) */
+        .answer-btn {
+            background: var(--flat-btn-bg);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 14px;
+            padding: 16px 20px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-dark);
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+        }
+
+        .answer-btn:hover:not(:disabled) {
+            background: var(--flat-btn-hover);
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .answer-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        /* Klasy weryfikacji odpowiedzi */
+        .answer-btn.correct-glow {
+            background: var(--color-correct) !important;
+            color: #ffffff !important;
+            border-color: var(--color-correct) !important;
+            font-weight: 600;
+            transform: scale(1.02);
+        }
+
+        .answer-btn.wrong-glow {
+            background: var(--color-wrong) !important;
+            color: #ffffff !important;
+            border-color: var(--color-wrong) !important;
+            transform: scale(0.98);
+        }
+
+        /* Dolny stabilny pasek informacyjny */
+        .bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        /* Przyciski funkcyjne */
+        .btn-close {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.4);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.15s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-dark);
+        }
+        .btn-close:hover { background: rgba(255, 255, 255, 0.75); transform: scale(1.1); }
+
+        .btn-end {
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            transition: color 0.15s, transform 0.15s;
+        }
+        .btn-end:hover { color: #d32f2f; transform: scale(1.03); }
+
+        .stat-percent {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: rgba(0, 0, 0, 0.65);
+        }
+
+        /* Przyciski na ekranie końcowym */
+        .flat-action-btn {
+            background: var(--flat-btn-bg);
+            color: var(--text-dark);
+            border: none;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin: 8px 0;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+        }
+        .flat-action-btn:hover {
+            background: var(--flat-btn-hover);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+        }
+
+        /* Statystyki końcowe */
+        .result-score { font-size: 4.5rem; font-weight: 800; margin: 10px 0; text-align: center; }
+        .result-grade { font-size: 1.6rem; font-weight: 600; margin-bottom: 8px; text-align: center; }
+        .result-status { font-size: 2.2rem; font-weight: 800; margin-bottom: 25px; text-transform: uppercase; text-align: center; }
+        .status-pass { color: #1e6b27; }
+        .status-fail { color: #b01e1e; }
+        
+        .result-stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.35);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .stat-item span { display: block; font-weight: 800; font-size: 1.5rem; margin-bottom: 4px; }
+        .stat-item.correct { color: #1e6b27; }
+        .stat-item.incorrect { color: #b01e1e; }
+        .stat-item.unanswered { color: #444; }
+    </style>
+</head>
+<body>
+
+    <div id="quiz-view" class="glass-panel quiz-box active pop-anim">
+        <button class="btn-close" onclick="window.location.href='index.html'" title="Powrót do index.html">✕</button>
+        
+        <div class="top-bar">
+            <div class="progress-text" id="progress-text">1/60</div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progress-bar"></div>
+            </div>
+        </div>
+
+        <div class="question-text" id="question-text">Pobieranie pytania...</div>
+
+        <div class="answers-grid" id="answers-grid">
+            </div>
+
+        <div class="bottom-bar">
+            <button class="btn-end" onclick="endQuizEarly()">Zakończ test</button>
+            <div class="stat-percent" id="current-percent">0% dobrze</div>
+        </div>
+    </div>
+
+    <div id="result-view" class="glass-panel pop-anim">
+        <h2 style="text-align: center; margin-bottom: 15px; font-weight: 700;">Wynik Sprawdzianu</h2>
+        <div class="result-score" id="final-score">0%</div>
+        <div class="result-status" id="final-status">NIE ZDANO</div>
+        <div class="result-grade" id="final-grade">Ocena: 1</div>
+        
+        <div class="result-stats">
+            <div class="stat-item correct">
+                <span id="stat-correct">0</span> Poprawne
+            </div>
+            <div class="stat-item incorrect">
+                <span id="stat-incorrect">0</span> Błędne
+            </div>
+            <div class="stat-item unanswered">
+                <span id="stat-unanswered">0</span> Pominięte
+            </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+            <button class="flat-action-btn" onclick="window.location.href='index.html'">Powrót na główną</button>
+            <button class="flat-action-btn" onclick="restartQuiz()">Powtórz test od nowa</button>
+        </div>
+    </div>
+
+    <script>
+        // --- PEŁNA BAZA 60 PYTAŃ NA PODSTAWIE NOTATKI ---
+        const quizQuestions = [
+            // Kategoria: Akt II
+            { text: 'O jakiej porze rozgrywa się Akt II dramatu?', options: ['Wieczór', 'Noc', 'Świt', 'Południe'], answer: 1 },
+            { text: 'Komu ukazuje się Widmo, będące duchem dawnego narzeczonego, malarza Ludwika de Laveaux?', options: ['Gospodyni', 'Marysi', 'Zosi', 'Racheli'], answer: 1 },
+            { text: 'Z jakim dziełem Mickiewicza powiązana jest romantyczna wizja Marysi i Widma?', options: ['Z "Panem Tadeuszem"', 'Z balladą "Romantyczność"', 'Z "Konradem Wallenrodem"', 'Z "Księgami narodu polskiego"'], answer: 1 },
+            { text: 'Kto ukazuje się Dziennikarzowi i staje się jego wyrzutem sumienia?', options: ['Wernyhora', 'Rycerz', 'Stańczyk', 'Hetman'], answer: 2 },
+            { text: 'Do jakiego ugrupowania politycznego w Krakowie należał Dziennikarz?', options: ['Demokratów', 'Stańczyków (konserwatystów)', 'Socjalistów', 'Ludowców'], answer: 1 },
+            { text: 'Co Stańczyk wręcza Dziennikarzowi jako symbol bezużytecznej publicystyki?', options: ['Złoty róg', 'Miecz', 'Złotą podkowę', 'Kaduceusz (laskę błazeńską)'], answer: 3 },
+            { text: 'Która postać fantastyczna ukazuje się Poecie?', options: ['Zawisza Czarny (Rycerz)', 'Stańczyk', 'Jakub Szela', 'Hetman Branicki'], answer: 0 },
+            { text: 'Do czego Rycerz wzywa Poetę słowami "Na koń, zbudź się!"?', options: ['Do porzucenia poezji', 'Do podjęcia roli wieszcza i wezwania narodu do walki', 'Do ucieczki z wesela', 'Do walki o serce Racheli'], answer: 1 },
+            { text: 'Dlaczego Poeta nie podejmuje wezwania Rycerza?', options: ['Bo nie słyszy jego głosu', 'Przez dekadencki strach, poczucie bezsensu i wewnętrzną niemoc', 'Bo woli tańczyć na weselu', 'Bo chłopi go powstrzymują'], answer: 1 },
+            { text: 'Która postać historyczna, symbol zdrady (Targowica), ukazuje się Panu Młodemu?', options: ['Jakub Szela', 'Stańczyk', 'Hetman Franciszek Ksawery Branicki', 'Zawisza Czarny'], answer: 2 },
+            { text: 'O co Hetman oskarża Pana Młodego w Akcie II?', options: ['O tchórzostwo w bitwie', 'O zdradę własnego stanu (szlachty) przez ślub z chłopką', 'O kradzież pieniędzy', 'O brak talentu literackiego'], answer: 1 },
+            { text: 'Komu ukazuje się Upiór (Jakub Szela)?', options: ['Gospodarzowi', 'Czepcowi', 'Dziadowi', 'Ojcu'], answer: 2 },
+            { text: 'Czego symbolem jest krwawa plama na czole Upiora (Jakuba Szeli)?', options: ['Zwycięstwa chłopów', 'Zbrodni rabacji, której nie da się zapomnieć ani wybaczyć', 'Trudu pracy na roli', 'Wybrania przez bóstwo'], answer: 1 },
+            { text: 'Kto jest najważniejszą zjawą Aktu II, która przybywa do Gospodarza?', options: ['Stańczyk', 'Rycerz', 'Wernyhora', 'Chochoł'], answer: 2 },
+            { text: 'Co symbolizuje postać Wernyhory?', options: ['Zdradę narodową', 'Proroctwo, nadzieję na zryw narodowy i zjednoczenie', 'Koniec świata', 'Zbrodnię i karę'], answer: 1 },
+            { text: 'Jaki rekwizyt Wernyhora powierza Gospodarzowi do zwołania powstania?', options: ['Złotą podkowę', 'Miecz sprawiedliwości', 'Złoty róg', 'Słomiany sznur'], answer: 2 },
+            { text: 'Co dzieje się ze złotą podkową zgubioną przez Wernyhorę?', options: ['Gospodarz wyrzuca ją za okno', 'Gospodyni chowa ją egoistycznie do kufra', 'Jasiek gubi ją w błocie', 'Czepiec przekuwa ją na broń'], answer: 1 },
+        ];
+
+        // --- STAN QUIZU ---
+        let currentIndex = 0;
+        let correctCount = 0;
+        let incorrectCount = 0;
+
+        // --- INICJALIZACJA ---
+        window.onload = function() {
+            // Tasowanie pytań na starcie
+            quizQuestions.sort(() => Math.random() - 0.5);
+            renderQuestion();
+        };
+
+        function renderQuestion() {
+            const currentQuestion = quizQuestions[currentIndex];
+            
+            // 1. Aktualizacja licznika u góry
+            document.getElementById('progress-text').innerText = `${currentIndex + 1}/${quizQuestions.length}`;
+            
+            // 2. Aktualizacja paska postępu (na całą szerokość)
+            const percentProgress = (currentIndex / quizQuestions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${percentProgress}%`;
+
+            // 3. Aktualizacja procentu poprawnych (w czasie rzeczywistym)
+            const totalAnsweredSoFar = correctCount + incorrectCount;
+            let currentAccuracy = 0;
+            if (totalAnsweredSoFar > 0) {
+                currentAccuracy = Math.round((correctCount / totalAnsweredSoFar) * 100);
+            }
+            document.getElementById('current-percent').innerText = `${currentAccuracy}% dobrze`;
+
+            // 4. Wyświetlenie pytania z animacją pop
+            const qTextEl = document.getElementById('question-text');
+            qTextEl.innerText = currentQuestion.text;
+            triggerPopAnimation(qTextEl);
+
+            // 5. Generowanie przycisków odpowiedzi
+            const grid = document.getElementById('answers-grid');
+            grid.innerHTML = '';
+
+            currentQuestion.options.forEach((optionText, idx) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.innerText = `${String.fromCharCode(65 + idx)}. ${optionText}`;
+                button.onclick = function() {
+                    checkSelectedAnswer(idx, currentQuestion.answer, button);
+                };
+                grid.appendChild(button);
+            });
+        }
+
+        function checkSelectedAnswer(selectedIndex, correctIndex, clickedButton) {
+            // Natychmiastowe zablokowanie wszystkich przycisków w siatce
+            const allButtons = document.querySelectorAll('.answer-btn');
+            allButtons.forEach(btn => btn.disabled = true);
+
+            if (selectedIndex === correctIndex) {
+                // Dobrze wybrana -> zielona
+                clickedButton.classList.add('correct-glow');
+                correctCount++;
+            } else {
+                // Źle wybrana -> czerwona, a poprawna -> zielona
+                clickedButton.classList.add('wrong-glow');
+                allButtons[correctIndex].classList.add('correct-glow');
+                incorrectCount++;
+            }
+
+            // Odczekanie 1.2 sekundy, aby użytkownik zobaczył kolory, po czym przejście dalej
+            setTimeout(() => {
+                currentIndex++;
+                if (currentIndex >= quizQuestions.length) {
+                    showFinalResults();
+                } else {
+                    renderQuestion();
+                }
+            }, 1200);
+        }
+
+        function endQuizEarly() {
+            showFinalResults();
+        }
+
+        function restartQuiz() {
+            currentIndex = 0;
+            correctCount = 0;
+            incorrectCount = 0;
+            quizQuestions.sort(() => Math.random() - 0.5);
+            
+            document.getElementById('result-view').classList.remove('active');
+            const quizView = document.getElementById('quiz-view');
+            quizView.classList.add('active');
+            triggerPopAnimation(quizView);
+            
+            renderQuestion();
+        }
+
+        function showFinalResults() {
+            document.getElementById('quiz-view').classList.remove('active');
+            const resultView = document.getElementById('result-view');
+            resultView.classList.add('active');
+            triggerPopAnimation(resultView);
+
+            const unansweredCount = quizQuestions.length - (correctCount + incorrectCount);
+            
+            // Wynik końcowy liczony z całej puli pytań
+            let finalPercent = 0;
+            if (quizQuestions.length > 0) {
+                finalPercent = Math.round((correctCount / quizQuestions.length) * 100);
+            }
+
+            document.getElementById('final-score').innerText = `${finalPercent}%`;
+            document.getElementById('stat-correct').innerText = correctCount;
+            document.getElementById('stat-incorrect').innerText = incorrectCount;
+            document.getElementById('stat-unanswered').innerText = unansweredCount;
+
+            // Wybór statusu (Zdał / Nie zdał od minimum 71%)
+            const statusEl = document.getElementById('final-status');
+            if (finalPercent >= 71) {
+                statusEl.innerText = "ZDANO";
+                statusEl.className = "result-status status-pass";
+            } else {
+                statusEl.innerText = "NIE ZDANO";
+                statusEl.className = "result-status status-fail";
+            }
+
+            // Przypisanie oceny wg skali podanej w wytycznych
+            let grade = 1;
+            if (finalPercent >= 99) grade = 6;
+            else if (finalPercent >= 85) grade = 5;
+            else if (finalPercent >= 71) grade = 4;
+            else if (finalPercent >= 56) grade = 3;
+            else if (finalPercent >= 41) grade = 2;
+            else grade = 1;
+
+            document.getElementById('final-grade').innerText = `Ocena: ${grade}`;
+        }
+
+        function triggerPopAnimation(element) {
+            element.classList.remove('pop-anim');
+            void element.offsetWidth; // Wymuszenie odświeżenia DOM dla restartu animacji
+            element.classList.add('pop-anim');
+        }
+    </script>
+</body>
+</html>
